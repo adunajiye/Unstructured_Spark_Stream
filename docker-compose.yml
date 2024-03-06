@@ -17,7 +17,7 @@ services:
       - "9090:8080"
       - "7077:7077"
     networks:
-      - ajiye
+      - code-with-yu
 
   spark-worker: &worker
     container_name: spark-worker
@@ -39,16 +39,15 @@ services:
       SPARK_WORKER_MEMORY: 1g
       SPARK_MASTER_URL: spark://spark-master:7077
     networks:
-      - ajiye
-    # spark-worker-1:
-    # <<: *spark-common
-    # spark-worker-2:
-    #   <<: *spark-common
+      - code-with-yu
 
-    # spark-worker-3:
-    #   <<: *spark-common
-
-    # spark-worker-4:
-    #   <<: *spark-common
+#  spark-worker-2:
+#    <<: *worker
+#
+#  spark-worker-3:
+#    <<: *worker
+#
+#  spark-worker-4:
+#    <<: *worker
 networks:
-  ajiye:
+  code-with-yu:
