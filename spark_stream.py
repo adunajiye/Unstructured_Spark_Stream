@@ -15,7 +15,7 @@ from configuration.config import config
 # Configure logging
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
 # config = configparser.ConfigParser()
-cluster_manager  = "local[0]"
+cluster_manager  = "local[*]"
 
 def define_udf():
     return {
