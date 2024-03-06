@@ -37,7 +37,7 @@ def define_udf():
         'extract_application_udf':udf(extract_duties,StringType()),
         }
 packages = [ "org.apache.hadoop:hadoop-common:3.3.6",
-                    #  "org.scala-lang:scala-library:2.13.0"
+             "com.fasterxml.jackson.core:jackson-databind:2.15.3",
                     "com.amazonaws:aws-java-sdk:1.11.469"
 ]
 jars = ",".join(packages) 
