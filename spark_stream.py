@@ -18,7 +18,7 @@ from configuration.config import config
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
 
 # config = configparser.ConfigParser()
-cluster_manager  = "spark://spark-master:7077"
+cluster_manager  = "spark://164.92.85.68:7077"
 
 def define_udf():
     return {
@@ -54,14 +54,18 @@ def get_session() -> SparkSession:
     """
     # Configure Spark
     spark = SparkSession.builder \
-    .appName("Read Unstructured_Data") \
-    .config("spark.executor.memory", "4g") \
-    .config("spark.executor.cores", 2) \
-    .config("spark.cores.max", 10) \
-    .config("spark.dynamicAllocation.enabled", "false") \
-    .config("spark.driver.memory", "100g") \
+    .appName("Stream_Unstructured_Data") \
+    .config("spark.executor.memory", "8g") \
+    .config("spark.executor.cores", 4) \
+    .config("spark.cores.max", 80) \
+    .config("spark.dynamicAllocation.enabled", "true") \
+    .config("spark.driver.memory", "1000g") \
     .config('spark.jars.packages',jars)\
     .config('spark.master',cluster_manager)\
+    .config("spark.eventLog.gcMetrics.youngGenerationGarbageCollectors", "G1 Concurrent GC") \
+    .config("spark.eventLog.gcMetrics.oldGenerationGarbageCollectors", "G1 Concurrent GC") \
+    .config("spark.eventLog.gcMetrics.youngGenerationGarbageCollectors", "G1 Young Generation") \
+    .config("spark.eventLog.gcMetrics.oldGenerationGarbageCollectors", "G1 Old Generation") \
     .config("spark.hadoop.fs.s3a.access.key",config.get('AWS_KEY')) \
     .config("spark.hadoop.fs.s3a.secret.key", config.get('AWS_SECRET')) \
     .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
@@ -71,16 +75,16 @@ def get_session() -> SparkSession:
     app_id = spark.conf.get("spark.app.id")
 
     logging.info(f"SparkSession started successfully for app: {app_id}")
-
+    
     return spark
 spark = get_session()
 
-csv_input_dir = "C:/Users/user/Desktop/Spark_Streaming_Unstructured/input/input_csv"
-images_input_dir = "C:/Users/user/Desktop/Spark_Streaming_Unstructured/input/input_images"
-json_input_dir = "C:/Users/user/Desktop/Spark_Streaming_Unstructured/input/input_json"
-pdf_input_dir = "C:/Users/user/Desktop/Spark_Streaming_Unstructured/input/input_pdf"
-text_input_dir = "C:/Users/user/Desktop/Spark_Streaming_Unstructured/input/input_text"
-video_input_dir = "C:/Users/user/Desktop/Spark_Streaming_Unstructured/input/input_video"
+csv_input_dir = ""
+images_input_dir = ""
+json_input_dir = ""
+pdf_input_dir = ""
+text_input_dir = "file:///C:/Users/user/Desktop/SparkStreamingUnstructured/input/input_text"
+video_input_dir = ""
 
 
 Data_Schema =  StructType([StructField('file_name',StringType(), True),
@@ -101,7 +105,8 @@ Data_Schema =  StructType([StructField('file_name',StringType(), True),
                            StructField('application_location',StringType(), True),                         
                            
 ])
-checkpointLocation = "C:/Users/user/AppData/Local/Temp/"
+checkpointLocation = "file:///C:/Users/user/Desktop/SparkStreamingUnstructured/checkpoint"
+
 
 udfs = define_udf()
 
@@ -115,7 +120,6 @@ job_df = job_df.withColumn('value',regexp_replace('value',r'\n',' '))
 job_df = job_df.withColumn('position',udfs['extract_position_udf']('value'))
 job_df = job_df.withColumn('salary_start',udfs['extract_salary_udf']('value').getField('salary_start'))
 job_df = job_df.withColumn('salary_end',udfs['extract_salary_udf']('value').getField('salary_end'))
-
 job_df = job_df.withColumn('start_date',udfs['extract_startdate_udf']('value'))
 job_df = job_df.withColumn('end_date',udfs['extract_enddate_udf']('value'))
 
@@ -125,6 +129,7 @@ query =( jdf
 .writeStream \
 .outputMode('append')
 .format('console')
+.option('truncate', False)
 .option('checkpointLocation', checkpointLocation)
 .start()
 )
