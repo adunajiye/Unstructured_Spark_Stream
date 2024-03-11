@@ -25,7 +25,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.spark
-    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    command: bin/spark-submit --master spark://164.92.85.68:7077 spark_stream.py
     volumes:
       - ./config:/opt/bitnami/spark/config
       - ./jobs:/opt/bitnami/spark/jobs
