@@ -40,18 +40,3 @@ services:
       SPARK_MASTER_URL: spark://164.92.85.68:7077
     networks:
       - code-with-yu
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.25.0.0/16
-
-#  spark-worker-2:
-#    <<: *worker
-#
-#  spark-worker-3:
-#    <<: *worker
-#
-#  spark-worker-4:
-#    <<: *worker
-networks:
-  code-with-yu:
