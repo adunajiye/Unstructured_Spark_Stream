@@ -1,0 +1,1 @@
+spark-submit --conf "spark.pyspark.python=python" --packages org.apache.hadoop:hadoop-common:3.3.6,com.fasterxml.jackson.core:jackson-databind:2.15.3,com.amazonaws:aws-java-sdk:1.11.46 --py-files udf_utils.py,configuration/config.py --class org.apache.spark.deploy.SparkSubmit file:///Users/user/Desktop/SparkStreamingUnstructured/spark_stream.py
