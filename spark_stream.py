@@ -2,6 +2,7 @@ from __future__ import annotations
 import logging
 import os
 from datetime import datetime
+from tabnanny import check
 import numpy as np
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.functions import mean, stddev, max, udf
@@ -13,9 +14,11 @@ import configparser
 from udf_utils import *
 from configuration.config import config
 # Configure logging
+
 logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
+
 # config = configparser.ConfigParser()
-cluster_manager  = "local[*]"
+cluster_manager  = "spark://spark-master:7077"
 
 def define_udf():
     return {
@@ -98,6 +101,7 @@ Data_Schema =  StructType([StructField('file_name',StringType(), True),
                            StructField('application_location',StringType(), True),                         
                            
 ])
+checkpointLocation = "C:/Users/user/AppData/Local/Temp/"
 
 udfs = define_udf()
 
@@ -121,8 +125,10 @@ query =( jdf
 .writeStream \
 .outputMode('append')
 .format('console')
-.option('checkpointLocation', 'C:/Users/user/AppData/Local/Temp/')
+.option('checkpointLocation', checkpointLocation)
 .start()
 )
 
 query.awaitTermination()
+print(logging.info(f"text_input_dir: {text_input_dir}"))
+print(logging.info(f"checkpointLocation: {checkpointLocation}"))
