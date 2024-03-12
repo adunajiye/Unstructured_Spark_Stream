@@ -123,7 +123,7 @@ job_df = job_df.withColumn('salary_end',udfs['extract_salary_udf']('value').getF
 job_df = job_df.withColumn('start_date',udfs['extract_startdate_udf']('value'))
 job_df = job_df.withColumn('end_date',udfs['extract_enddate_udf']('value'))
 
-jdf = job_df.select("file_name","start_date","end_date")
+jdf = job_df.select("file_name","start_date","end_date","salary_start","salary_end")
 
 query =( jdf
 .writeStream \

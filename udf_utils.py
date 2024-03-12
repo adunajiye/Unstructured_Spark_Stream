@@ -1,5 +1,8 @@
 from datetime import datetime
+import re
 from time import strptime
+
+from click import group
 def extract_file_name(file_content):
     file_content = file_content.strip()
     position = file_content.split('/n')[0]
@@ -35,9 +38,21 @@ def extract_end_date(file_content):
     enddate = enddate_match.group() if enddate_match else None
     enddatee = datetime.strptime(enddate,'%B %d, %y') if enddate_match else None
     return enddatee
-def extract_salary():
-    pass
-
+def extract_salary(file_content):
+    try:
+        salary_pattern = r'\$(\d{1,3}(?:,\d{3})+).+?to.+\$(\d{1,3}(?:,\d{3})+)(?:\s+and\s+\$(\d{1,3}(?:,\d{3})+)\s+to\s+\$(\d{1,3}{?:,\d{3})+))?'
+        salary_match = re.search(salary_pattern,file_content)
+        if salary_match:
+            salary_start = float(salary_match.group(1).replace(',' ,''))
+            salary_end = float(salary_match.group(4).replace(',','')) 
+            # else float(salary_match.group(2).replace(',',''))
+            
+        else:
+            salary_start,salary_end = None,None
+        return salary_start,salary_end           
+    except Exception as e:
+        raise ValueError(f' Error extracting salary:{str(e)}')
+        
 
 def extract_requirement():
     pass
