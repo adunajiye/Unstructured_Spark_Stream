@@ -36,7 +36,7 @@ def define_udf():
         'extract_notes_udf':udf(extract_notes,StringType()),
         'extract_duties_udf':udf(extract_duties,StringType()),
         'extract_selection_udf':udf(extract_selection,StringType()),
-        'extract_experince_length_udf':udf(extract_experince_length,StringType()),
+        'extract_experince_length_udf':udf(extract_experience_length,StringType()),
         'extract_education_length_udf':udf(extract_education_length,StringType()),
         'extract_application_udf':udf(extract_duties,StringType()),
         }
@@ -82,7 +82,7 @@ spark = get_session()
 
 csv_input_dir = ""
 images_input_dir = ""
-json_input_dir = ""
+json_input_dir = "file:///C:/Users/user/Desktop/SparkStreamingUnstructured/input/input_json"
 pdf_input_dir = ""
 text_input_dir = "file:///C:/Users/user/Desktop/SparkStreamingUnstructured/input/input_text"
 video_input_dir = ""
@@ -110,7 +110,7 @@ checkpointLocation = "file:///C:/Users/user/Desktop/SparkStreamingUnstructured/c
 
 
 udfs = define_udf()
-
+# Read the input files of the data
 job_df = (spark.readStream
           .format('text')
           .option('wholetext','true')
@@ -119,6 +119,8 @@ job_df = (spark.readStream
 json_df = (spark.readStream
            .json(json_input_dir,schema = Data_Schema,multiLine=True)
            )
+
+
 job_df = job_df.withColumn('file_name',regexp_replace(udfs['extract_file_name_udf']('value'),'\r',' '))
 job_df = job_df.withColumn('value',regexp_replace('value',r'\n',' '))
 job_df = job_df.withColumn('position',udfs['extract_position_udf']('value'))
@@ -160,7 +162,7 @@ bucket_name = ""
 
 query = StreamWriter(union_df,f's3a://{bucket_name}/checkpoint',f's3a://{bucket_name}/data/spark_unstructured')
 
-spark.stop()
+
 # query =( union_df 
 # .writeStream \
 # .outputMode('append')
@@ -171,5 +173,7 @@ spark.stop()
 # )
 
 query.awaitTermination()
-print(logging.info(f"text_input_dir: {text_input_dir}"))
-print(logging.info(f"checkpointLocation: {checkpointLocation}"))
+spark.stop()
+
+# print(logging.info(f"text_input_dir: {text_input_dir}"))
+# print(logging.info(f"checkpointLocation: {checkpointLocation}"))

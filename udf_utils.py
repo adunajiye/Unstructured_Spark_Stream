@@ -4,7 +4,7 @@ from time import strptime
 
 from click import group
 
-from symbol import not_test
+# from symbol import not_test
 def extract_file_name(file_content):
     file_content = file_content.strip()
     position = file_content.split('/n')[0]
