@@ -12,10 +12,10 @@
 <li>Docker</li>
 
 <div class="code-container">
-  <button class="copy-button" data-clipboard-target="#example-code">Run the following command to check list of Kafka Topic</button>
+  <button class="copy-button" data-clipboard-target="#example-code">Clone the repository</button>
 
   ```python
-  docker exec -it container_name kafka-topics --list --bootstrap-server localhost:9092
+  git clone 
  ```
 
 
