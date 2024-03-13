@@ -15,7 +15,14 @@
   <button class="copy-button" data-clipboard-target="#example-code">Clone the repository</button>
 
   ```python
-  git clone 
+  git clone https://github.com/adunajiye/Unstructured_Spark_Stream.git
+ ```
+
+<div class="code-container">
+  <button class="copy-button" data-clipboard-target="#example-code">Run Docker Compose to spin up the spark cluste</button>
+
+  ```python
+  docker-compose up -d
  ```
 
 
