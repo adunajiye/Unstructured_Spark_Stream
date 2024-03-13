@@ -89,7 +89,7 @@ def extract_selection(file_content):
     except Exception as e:
         raise ValueError(f'Error extracting selection:{str(e)}')
 
-def extract_experince_length(file_content):
+def extract_experience_length(file_content):
     try:
         experience_length_match = re.search(r'(One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|one|two|three|four|five)\s(years?)\s(of\sfull(-|\s)time)',file_content)
         experience_length = experience_length_match.group(1) if experience_length_match else None

@@ -3,6 +3,7 @@ import logging
 import os
 from datetime import datetime
 from tabnanny import check
+from networkx import union
 import numpy as np
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.functions import mean, stddev, max, udf
@@ -115,6 +116,9 @@ job_df = (spark.readStream
           .option('wholetext','true')
           .load(text_input_dir)
           )
+json_df = (spark.readStream
+           .json(json_input_dir,schema = Data_Schema,multiLine=True)
+           )
 job_df = job_df.withColumn('file_name',regexp_replace(udfs['extract_file_name_udf']('value'),'\r',' '))
 job_df = job_df.withColumn('value',regexp_replace('value',r'\n',' '))
 job_df = job_df.withColumn('position',udfs['extract_position_udf']('value'))
@@ -122,17 +126,49 @@ job_df = job_df.withColumn('salary_start',udfs['extract_salary_udf']('value').ge
 job_df = job_df.withColumn('salary_end',udfs['extract_salary_udf']('value').getField('salary_end'))
 job_df = job_df.withColumn('start_date',udfs['extract_startdate_udf']('value'))
 job_df = job_df.withColumn('end_date',udfs['extract_enddate_udf']('value'))
+job_df = job_df.withColumn('classcode',udfs['extract_classcode_udf']('value'))
+job_df = job_df.withColumn('req',udfs['extract_requirements_udf']('value'))
+job_df = job_df.withColumn('notes',udfs['extract_notes_udf']('value'))
+job_df = job_df.withColumn('duties',udfs['extract_duties_udf']('value'))
+job_df = job_df.withColumn('selection',udfs['extract_selection_udf']('value'))
+job_df = job_df.withColumn('experience_length',udfs['extract_experience_length_udf']('value'))
+job_df = job_df.withColumn('education_length',udfs['extract_education_length_udf']('value'))
+job_df = job_df.withColumn('application_location',udfs['extract_application_loc_udf']('value'))
 
-jdf = job_df.select("file_name","start_date","end_date","salary_start","salary_end")
 
-query =( jdf
-.writeStream \
-.outputMode('append')
-.format('console')
-.option('truncate', False)
-.option('checkpointLocation', checkpointLocation)
-.start()
-)
+
+
+
+jdf = job_df.select("file_name","start_date","end_date","salary_start","salary_end","classcode","req","notes","duties","selection","experience_length","education_length","application_location")
+# Read Json format data 
+
+
+json_df = json_df.select("file_name","start_date","end_date","salary_start","salary_end","classcode","req","notes","duties","selection","experience_length","education_length","application_location")
+# Combine two df using Union function 
+
+union_df = jdf.union(json_df)
+
+# Stream Data to s3 Buckets 
+def StreamWriter(input:DataFrame,checkpointFolder,Output):
+    return (input.writeStream.format('parquet')
+            .option('checkpointLocation',checkpointFolder)
+            .option('path',Output)
+            .trigger(processingTime='3 Seconds')
+            .start()
+            )
+bucket_name = ""
+
+query = StreamWriter(union_df,f's3a://{bucket_name}/checkpoint',f's3a://{bucket_name}/data/spark_unstructured')
+
+spark.stop()
+# query =( union_df 
+# .writeStream \
+# .outputMode('append')
+# .format('console')
+# .option('truncate', False)
+# .option('checkpointLocation', checkpointLocation)
+# .start()
+# )
 
 query.awaitTermination()
 print(logging.info(f"text_input_dir: {text_input_dir}"))
