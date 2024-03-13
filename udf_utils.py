@@ -3,6 +3,8 @@ import re
 from time import strptime
 
 from click import group
+
+from symbol import not_test
 def extract_file_name(file_content):
     file_content = file_content.strip()
     position = file_content.split('/n')[0]
@@ -54,31 +56,70 @@ def extract_salary(file_content):
         raise ValueError(f' Error extracting salary:{str(e)}')
         
 
-def extract_requirement():
-    pass
+def extract_requirement(file_content):
+    try:
+        requirement_match = re.search(r'(REQUIREMENTS?/\s?MINIMUM_QUALIFICATIONS?)(.*)(PROCESS_NOTES?)',file_content,
+                                      re.DOTALL)
+        REQ = requirement_match.group(2).strip() if requirement_match else None
+        return REQ
+    except Exception as e:
+        raise ValueError(f'Error extracting requirements: {str(e)}')
 
-def extract_notes():
-    pass
+def extract_notes(file_content):
+    try:
+        notes_match = re.search(r'(DUTIES?):(:*?)(?DUTIES)',file_content,re.DOTALL | re.IGNORECASE)
+        notes  = notes_match.group(2).strip() if notes_match else None
+        return notes
+    except Exception as e:
+        raise ValueError(f'Error extracting notes:{str(e)}')
 
-def extract_duties():
-    pass
+def extract_duties(file_content):
+    try:
+        duties_match = re.search(r'(NOTES?):(:*?)(REQ[A-Z])',file_content,re.DOTALL)
+        duties  = duties_match.group(2).strip() if duties_match else None
+        return duties
+    except Exception as e:
+        raise ValueError(f'Error extracting notes:{str(e)}')
 
-def extract_selection():
-    pass
+def extract_selection(file_content):
+    try:
+        selection_match = re.findall(r'([A-Z][a-z]+)(\s\.\s)',file_content)
+        selection = [z[0] for z in selection_match] if selection_match else None
+        return selection 
+    except Exception as e:
+        raise ValueError(f'Error extracting selection:{str(e)}')
 
-def extract_experince_length():
-    pass
+def extract_experince_length(file_content):
+    try:
+        experience_length_match = re.search(r'(One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|one|two|three|four|five)\s(years?)\s(of\sfull(-|\s)time)',file_content)
+        experience_length = experience_length_match.group(1) if experience_length_match else None
+        return experience_length
+    except Exception as e:
+        raise ValueError(f'Error extracting selection:{str(e)}')
+        
 
 def extract_jobtype():
     pass
 
 
-def extract_education_length():
-    pass
+def extract_education_length(file_content):
+    try:
+        education_length_match = re.search(r'(One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|one|two|three|four|five)(\s|-)(years?)\s(college|university)',file_content)
+        education_length = education_length_match.group(1) if education_length_match else None
+        return education_length
+    except Exception as e:
+        raise ValueError(f'Error extracting selection:{str(e)}')
+    
 
 def extract_schooltype():
     pass
 
 
-def extract_application_location():
-    pass
+def extract_application_location(file_content):
+    try:
+        app_loc_match = re.search(r'(Applications? will only be accepted on-?line)',file_content,re.IGNORECASE)
+        app_loc ='Online' if app_loc_match else 'Mail or In Person'
+        return app_loc
+    except Exception as e:
+        raise ValueError(f'Error extracting selection:{str(e)}')
+    
