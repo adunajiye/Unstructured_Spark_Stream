@@ -25,7 +25,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.spark
-    command: bin/spark-submit --master spark://143.198.142.146:7077 spark_stream.py
+    command: bin/spark-submit --master spark://164.92.85.68:7077 spark_stream.py
     volumes:
       - ./config:/opt/bitnami/spark/config
       - ./jobs:/opt/bitnami/spark/jobs
@@ -37,7 +37,7 @@ services:
       SPARK_MODE: worker
       SPARK_WORKER_CORES: 2
       SPARK_WORKER_MEMORY: 12g
-      SPARK_MASTER_URL: spark://143.198.142.146:7077
+      SPARK_MASTER_URL: spark://164.92.85.68:7077
     networks:
       - code-with-yu
 
