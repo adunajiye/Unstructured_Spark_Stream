@@ -32,13 +32,13 @@ def define_udf():
         'extract_startdate_udf':udf(extract_start_date,StringType()),
         'extract_enddate_udf':udf(extract_end_date,StringType()),
         'extract_classcode_udf':udf(extract_classcode,StringType()),
-        'extract_requirment_udf':udf(extract_requirement,StringType()),
+        'extract_requirement_udf':udf(extract_requirement,StringType()),
         'extract_notes_udf':udf(extract_notes,StringType()),
         'extract_duties_udf':udf(extract_duties,StringType()),
         'extract_selection_udf':udf(extract_selection,StringType()),
-        'extract_experince_length_udf':udf(extract_experience_length,StringType()),
+        'extract_experience_length_udf':udf(extract_experience_length,StringType()),
         'extract_education_length_udf':udf(extract_education_length,StringType()),
-        'extract_application_udf':udf(extract_duties,StringType()),
+        'extract_application_loc_udf':udf(extract_application_location,StringType()),
         }
 packages = [ "org.apache.hadoop:hadoop-common:3.3.6",
              "com.fasterxml.jackson.core:jackson-databind:2.15.3",
@@ -56,7 +56,7 @@ def get_session() -> SparkSession:
     # Configure Spark
     spark = SparkSession.builder \
     .appName("Stream_Unstructured_Data") \
-    .config("spark.executor.memory", "8g") \
+    .config("spark.executor.memory", "12g") \
     .config("spark.executor.cores", 4) \
     .config("spark.cores.max", 80) \
     .config("spark.dynamicAllocation.enabled", "true") \
@@ -101,7 +101,7 @@ Data_Schema =  StructType([StructField('file_name',StringType(), True),
                            StructField('selection',StringType(), True),
                            StructField('experience_length',StringType(), True),
                            StructField('job_type',StringType(), True),
-                           StructField('education_lenght',StringType(), True),
+                           StructField('education_length',StringType(), True),
                            StructField('school_type',StringType(), True),
                            StructField('application_location',StringType(), True),                         
                            
@@ -116,9 +116,13 @@ job_df = (spark.readStream
           .option('wholetext','true')
           .load(text_input_dir)
           )
-json_df = (spark.readStream
-           .json(json_input_dir,schema = Data_Schema,multiLine=True)
+json_df = (
+    spark.readStream \
+           .json(json_input_dir,
+                 schema = Data_Schema,
+                 multiLine=True)
            )
+# json_df.show()
 
 
 job_df = job_df.withColumn('file_name',regexp_replace(udfs['extract_file_name_udf']('value'),'\r',' '))
@@ -129,7 +133,7 @@ job_df = job_df.withColumn('salary_end',udfs['extract_salary_udf']('value').getF
 job_df = job_df.withColumn('start_date',udfs['extract_startdate_udf']('value'))
 job_df = job_df.withColumn('end_date',udfs['extract_enddate_udf']('value'))
 job_df = job_df.withColumn('classcode',udfs['extract_classcode_udf']('value'))
-job_df = job_df.withColumn('req',udfs['extract_requirements_udf']('value'))
+job_df = job_df.withColumn('req',udfs['extract_requirement_udf']('value'))
 job_df = job_df.withColumn('notes',udfs['extract_notes_udf']('value'))
 job_df = job_df.withColumn('duties',udfs['extract_duties_udf']('value'))
 job_df = job_df.withColumn('selection',udfs['extract_selection_udf']('value'))
@@ -145,35 +149,36 @@ jdf = job_df.select("file_name","start_date","end_date","salary_start","salary_e
 # Read Json format data 
 
 
-json_df = json_df.select("file_name","start_date","end_date","salary_start","salary_end","classcode","req","notes","duties","selection","experience_length","education_length","application_location")
+# json_df = json_df.select("file_name","start_date","end_date","salary_start","salary_end","classcode","req","notes","duties","selection","experience_length","education_length","application_location")
 # Combine two df using Union function 
 
-union_df = jdf.union(json_df)
+# union_df = jdf.union(json_df)
 
 # Stream Data to s3 Buckets 
-def StreamWriter(input:DataFrame,checkpointFolder,Output):
-    return (input.writeStream.format('parquet')
-            .option('checkpointLocation',checkpointFolder)
-            .option('path',Output)
-            .trigger(processingTime='3 Seconds')
-            .start()
-            )
-bucket_name = ""
+# def StreamWriter(input:DataFrame,checkpointFolder,Output):
+#     return (input.writeStream.format('parquet')
+#             .option('checkpointLocation',checkpointFolder)
+#             .option('path',Output)
+#             .trigger(processingTime='3 Seconds')
+#             .start()
+#             )
+# bucket_name = ""
 
-query = StreamWriter(union_df,f's3a://{bucket_name}/checkpoint',f's3a://{bucket_name}/data/spark_unstructured')
+# query = StreamWriter(union_df,
+#                      f's3a://{bucket_name}/checkpoint',
+#                      f's3a://{bucket_name}/data/spark_unstructured'
+#                      )
 
 
-# query =( union_df 
-# .writeStream \
-# .outputMode('append')
-# .format('console')
-# .option('truncate', False)
-# .option('checkpointLocation', checkpointLocation)
-# .start()
-# )
+query =( jdf
+.writeStream \
+.outputMode('append')
+.format('console')
+.option('truncate', False)
+.option('checkpointLocation', checkpointLocation)
+.start()
+)
 
 query.awaitTermination()
 spark.stop()
 
-# print(logging.info(f"text_input_dir: {text_input_dir}"))
-# print(logging.info(f"checkpointLocation: {checkpointLocation}"))
