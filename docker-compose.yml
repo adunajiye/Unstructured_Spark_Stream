@@ -101,6 +101,5 @@ services:
      SPARK_WORKER_CORES: 2
      SPARK_WORKER_MEMORY: 12g
      SPARK_MASTER_URL: spark://143.198.142.146:7077
-
 networks:
   backend:

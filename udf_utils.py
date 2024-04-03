@@ -115,11 +115,11 @@ def extract_schooltype():
     pass
 
 
-def extract_application_location(file_content):
-    try:
-        app_loc_match = re.search(r'(Applications? will only be accepted on-?line)',file_content,re.IGNORECASE)
-        app_loc ='Online' if app_loc_match else 'Mail or In Person'
-        return app_loc
-    except Exception as e:
-        raise ValueError(f'Error extracting selection:{str(e)}')
+# def extract_application_location(file_content):
+#     try:
+#         app_loc_match = re.search(r'(Applications? will only be accepted on-?line)',file_content,re.IGNORECASE)
+#         app_loc ='Online' if app_loc_match else 'Mail or In Person'
+#         return app_loc
+#     except Exception as e:
+#         raise ValueError(f'Error extracting selection:{str(e)}')
     
